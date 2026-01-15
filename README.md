@@ -14,7 +14,7 @@ Due to an unintended LaTeX syntax error, the experimental results in Table 1, wh
 
 We fully acknowledge that Table 1 contains the primary experimental results of our manuscript, and this error reflects a lack of sufficient care on our part during the final manuscript preparation. We deeply regret any inconvenience, confusion, or additional burden this mistake may have caused to the reviewers, the Area Chair, and the Program Committee.
 
-To address this issue transparently, we have included the corrected and verified version of Table 1 in the “Anonymous Repository”, where all results are accurately reported. We would like to emphasize that the corrected table does not change any claims, conclusions, or comparisons made in the manuscript, but we fully understand that the original presentation error undermines clarity and trust.
+To address this issue transparently, we have included the corrected and verified version of Table 1 in the “Anonymous Repository” (**https://anonymous.4open.science/r/SchemaToken/schemaToken_main_result.png**), where all results are accurately reported. We would like to emphasize that the corrected table does not change any claims, conclusions, or comparisons made in the manuscript, but we fully understand that the original presentation error undermines clarity and trust.
 
 Once again, we sincerely apologize for this oversight and for any negative impact it may have had on the review process. We are grateful for your time, effort, and careful consideration of our work, and we truly appreciate your understanding.
 
