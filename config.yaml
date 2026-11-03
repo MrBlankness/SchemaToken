@@ -1,0 +1,80 @@
+# SchemaToken external configuration
+# All paths are absolute. Numbers are kept small so the full pipeline can be
+# smoke-tested in minutes.
+
+paths:
+  # Backbone LLM (we use Qwen3-1.7B for the smoke test; the paper uses
+  # Qwen3-1.7B/8B and LLaMA3.1-8B). Qwen3-0.6B is tiny enough to debug fast.
+  base_model: /apdcephfs_nj7/share_303382070/weibinliao/llms/Qwen3-0.6B
+
+  # BIRD dataset
+  bird_root: /apdcephfs_nj7/share_303382070/weibinliao/datasets/BIRD/dev_20240627
+  bird_dev_json: /apdcephfs_nj7/share_303382070/weibinliao/datasets/BIRD/dev_20240627/dev.json
+  bird_tables_json: /apdcephfs_nj7/share_303382070/weibinliao/datasets/BIRD/dev_20240627/dev_tables.json
+  bird_databases_dir: /apdcephfs_nj7/share_303382070/weibinliao/datasets/BIRD/dev_20240627/dev_databases
+
+  # Outputs
+  schema_meta: /apdcephfs_nj7/share_303382070/weibinliao/SchemaToken/runs/schema_meta.json
+  stage1_dir: /apdcephfs_nj7/share_303382070/weibinliao/SchemaToken/runs/stage1
+  stage2_dir: /apdcephfs_nj7/share_303382070/weibinliao/SchemaToken/runs/stage2
+  eval_dir: /apdcephfs_nj7/share_303382070/weibinliao/SchemaToken/runs/eval
+
+# Limit which databases participate in the run. Empty list means "all".
+# For smoke-testing we use just two small databases.
+data:
+  databases:
+    - california_schools
+    - debit_card_specializing
+  # Cap how many dev questions each database contributes. -1 means no cap.
+  max_dev_questions_per_db: 8
+  # How many synthetic pseudo-task instances to generate per epoch
+  pseudo_task_train_size: 32
+
+# === SchemaToken architecture ===
+schema_token:
+  # Codebook depth (identifier length).  Paper default L=4; smaller for debug.
+  L_T: 2
+  L_C: 2
+  # Codebook size N. Paper uses 256; smaller here.
+  N: 32
+  # k-means clusters used by the diversity loss.  Paper uses K=5.
+  K: 4
+  # Diversity weight α
+  alpha: 0.02
+
+# === Stage 1: Semantic Alignment SFT ===
+stage1:
+  num_train_samples: 64       # Cap (also cycles through prompts)
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 2
+  learning_rate: 5.0e-4
+  num_train_epochs: 1
+  max_steps: 20               # debug cap
+  max_length: 384
+  bf16: true
+  logging_steps: 5
+  save_steps: 1000
+
+# === Stage 2: Pseudo-task Alignment via GRPO ===
+stage2:
+  m_min: 2                    # ϵ̌
+  m_max: 5                    # ϵ̂
+  num_train_steps: 12         # debug-tiny (paper: 200)
+  num_rollouts: 2             # debug-tiny (paper: 4)
+  per_device_train_batch_size: 1
+  learning_rate: 5.0e-5
+  max_prompt_length: 512
+  max_completion_length: 64
+  bf16: true
+  # KL penalty for GRPO (TRL default 0.04)
+  kl_beta: 0.04
+  logging_steps: 2
+  # LoRA settings (paper uses r=8)
+  lora_r: 8
+  lora_alpha: 16
+  lora_dropout: 0.0
+
+# === Evaluation ===
+eval:
+  max_questions_per_db: 4     # tiny eval set for smoke test
+  max_new_tokens: 48

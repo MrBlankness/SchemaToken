@@ -14,22 +14,41 @@ Schema linking is a crucial step in Text-to-SQL systems, connecting natural lang
 # Data Download
 Download datasets from the official repository of [Spider](https://yale-lily.github.io/spider) and [BIRD](https://bird-bench.github.io/)
 
-## Data Preparation
+## Files
+
+| File                  | Role                                                                        |
+|-----------------------|-----------------------------------------------------------------------------|
+| `config.yaml`         | Single source of truth for paths and tiny training budgets.                 |
+| `schema_utils.py`     | Common helpers: config loader, schema-token string format, Jaccard helper.  |
+| `data_pipeline.py`    | Loads BIRD-dev schema + descriptions, extracts gold columns from each SQL.  |
+| `schema_tokens.py`    | RQ-VAE-style codebook, hybrid input embedding, hybrid LM head.              |
+| `stage1_train.py`     | Stage 1 SFT: Semantic Alignment with diversity regularisation.              |
+| `stage2_train.py`     | Stage 2 GRPO: pseudo-task alignment with Jaccard-similarity reward.         |
+| `evaluate.py`         | BIRD-dev schema-linking eval reporting SRR / NSR / NSP / NSF.               |
+| `run_all.sh`          | Drives the four scripts above end-to-end.                                   |
+
+
+## Quick start
+
 ```bash
-python preprocess.py
+bash run_all.sh
 ```
 
-## Initialize embedding
-```bash
-python init_embed.py
-```
+The `config.yaml` covers two BIRD databases, 110 schema
+tokens, 20 stage-1 micro-steps, 12 stage-2 GRPO steps and 8 eval
+questions. End-to-end takes about 2 minutes on a single H20.
 
-## Model Training
-```bash
-python train.py
-```
+## Scaling to all dataset
 
-# Model Inference
-```bash
-python eval.py
-```
+Edit `config.yaml`:
+
+| Setting                             | Smoke value | Paper value |
+|-------------------------------------|-------------|-------------|
+| `data.databases`                    | 2 dbs       | all 11      |
+| `data.max_dev_questions_per_db`     | 8           | -1 (all)    |
+| `schema_token.L_T`, `schema_token.L_C` | 2        | 4           |
+| `schema_token.N`                    | 32          | 256         |
+| `stage1.max_steps`                  | 20          | 3 epochs    |
+| `stage2.num_train_steps`            | 12          | 200         |
+| `stage2.num_rollouts`               | 2           | 4           |
+
